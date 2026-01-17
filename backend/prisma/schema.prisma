@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String?  // null for OAuth users
+  googleId     String?  @unique
+  pushToken    String?  // Expo push token
+  device       Device?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Device {
+  id           String        @id // deviceId from QR code
+  secret       String        // deviceSecret for ESP32 auth
+  userId       String?       @unique
+  user         User?         @relation(fields: [userId], references: [id])
+  state        DeviceState   @default(IDLE)
+  alarmActive  Boolean       @default(false)
+  lastMotionAt DateTime?
+  motionEvents MotionEvent[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model MotionEvent {
+  id        String   @id @default(uuid())
+  deviceId  String
+  device    Device   @relation(fields: [deviceId], references: [id])
+  timestamp DateTime @default(now())
+}
+
+enum DeviceState {
+  IDLE
+  WATCH
+  THEFT_DETECTED
+}
+

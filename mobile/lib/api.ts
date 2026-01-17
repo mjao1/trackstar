@@ -2,7 +2,9 @@ import * as SecureStore from 'expo-secure-store';
 
 // Change this to your Railway URL after deployment
 // Use your computer's IP address so the phone can reach the backend
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.0.31:3000';
+//const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://172.20.10.9:3000'; // suhyeon
+//const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://172.20.10.4:3000'; // emma
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.0.31:3000'; // home
 
 const TOKEN_KEY = 'auth_token';
 

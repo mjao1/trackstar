@@ -5,11 +5,20 @@
 // === CONFIGURATION ===
 
 // WiFi credentials
+//#define WIFI_SSID "suhyeon"
+//#define WIFI_PASSWORD "trackstar"
+
+//#define WIFI_SSID "emmaiphone"
+//#define WIFI_PASSWORD "b14bzqh9wnwns"
+
 #define WIFI_SSID "9304"
 #define WIFI_PASSWORD "donotjoinifnotapt9304"
 
 // Backend API
-#define API_BASE_URL "http://10.0.0.31:3000"
+//#define API_BASE_URL "http://172.20.10.9:3000" // suhyeon
+//#define API_BASE_URL "http://172.20.10.4:3000" // emma
+#define API_BASE_URL "http://10.0.0.31:3000" // home
+
 #define API_POLL_ENDPOINT "/api/esp32/poll"
 #define API_MOTION_ENDPOINT "/api/esp32/motion"
 

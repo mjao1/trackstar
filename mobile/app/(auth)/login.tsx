@@ -23,7 +23,7 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
   const { checkAuth } = useAuth();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   // Handle user login with email and password
   const handleLogin = async () => {
@@ -52,7 +52,7 @@ export default function LoginScreen() {
         <View style={styles.header}>
           <View style={[styles.logoContainer, { backgroundColor: colors.primaryLight }]}>
             <Image 
-              source={require('@/assets/slug_bike.png')} 
+              source={isDark ? require('@/assets/slug_bike_dark.png') : require('@/assets/slug_bike.png')} 
               style={styles.logoImage}
               resizeMode="contain"
             />
@@ -145,7 +145,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 20,
-    backgroundColor: '#E8F4FC',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,

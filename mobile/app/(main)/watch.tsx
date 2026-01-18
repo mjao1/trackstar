@@ -26,7 +26,7 @@ import {
 
 export default function WatchScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [device, setDevice] = useState<Device | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const buttonScaleAnim = useRef(new Animated.Value(1)).current;
@@ -352,7 +352,7 @@ export default function WatchScreen() {
     return (
       <View style={[styles.centerContainer, themedStyles.container]}>
         <Image 
-          source={require('@/assets/slug_bike.png')} 
+          source={isDark ? require('@/assets/slug_bike_main_dark.png') : require('@/assets/slug_bike.png')} 
           style={styles.noDeviceLogo}
           resizeMode="contain"
         />
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
   noDeviceLogo: {
     width: 120,
     height: 120,
-    opacity: 0.5,
+    opacity: 0.85,
   },
   noDeviceTitle: {
     fontSize: 20,

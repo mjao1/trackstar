@@ -49,7 +49,7 @@ const darkColors: ThemeColors = {
   borderFocused: '#E5E7EB',
   borderLight: '#243B55',
   primary: '#60A5FA',
-  primaryLight: '#1E3A5F',
+  primaryLight: 'rgba(154, 195, 239, 0.35)',
   danger: '#F87171',
   icon: '#60A5FA',
   iconMuted: '#64748B',

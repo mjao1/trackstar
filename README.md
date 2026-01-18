@@ -54,7 +54,7 @@ Trackstar consists of a hardware device and mobile app:
 - LiPo Battery for portability
 
 ### Software
-- **Mobile App**: React Native app for iOS and Android. Handles user authentication, device pairing via QR code scanning, and real-time status monitoring. Features push notifications for motion alerts, integrated Google Maps for GPS tracking.
-- **Backend**: Server that connects your device and app. Manages user accounts and device ownership, validates device authentication, and stores commands for devices to poll. Handles motion events and GPS coordinates from devices, and sends push notifications to the mobile app.
+- **Mobile App**: React Native app using Expo for cross-platform compatibility. Handles user authentication, device pairing via QR code scanning, and real-time status monitoring. Features a clean UI with dark/light mode support, push notifications for motion alerts, and integrated Google Maps for GPS tracking with a native map modal that matches the main app UI design.
+- **Backend**: Node.js/Express REST API with PostgreSQL serving as the central communication hub. Authenticates both users and devices (via device ID/secret pairs), stores device state and GPS coordinates, and manages the command queue that devices poll. Handles motion events and GPS coordinates from devices, and integrates Expo's push notification service to send real-time alerts to users when motion is detected.
 - **Device Firmware**: Embedded logic running on the hardware device. Implements motion detection using accelerometer data, manages WiFi connectivity for HTTP communication with the backend, and handles GPS coordinate reading and transmission. Controls device states (Idle/Watch/Theft Detected) and manages alarm activation.
 

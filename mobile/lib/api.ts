@@ -166,3 +166,12 @@ export async function getMotionEvents(): Promise<ApiResponse<{ events: MotionEve
   return request('/api/device/events');
 }
 
+export interface GpsLocation {
+  latitude: number;
+  longitude: number;
+  lastGpsUpdate: string;
+}
+
+export async function getGpsLocation(): Promise<ApiResponse<GpsLocation>> {
+  return request('/api/device/gps');
+}

@@ -19,6 +19,9 @@
       "bundleIdentifier": "com.trackstar.app",
       "infoPlist": {
         "NSCameraUsageDescription": "We need camera access to scan QR codes for device pairing"
+      },
+      "config": {
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
       }
     },
     "android": {

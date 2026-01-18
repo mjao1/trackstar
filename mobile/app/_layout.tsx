@@ -133,9 +133,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <RootLayoutNav />
-      </AuthProvider>
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
     </ThemeProvider>
   );
 }

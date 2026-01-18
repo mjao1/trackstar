@@ -11,6 +11,7 @@ import {
   Modal,
   Image,
 } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import { useRouter, Href, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme';
@@ -19,6 +20,7 @@ import {
   setDeviceState,
   setAlarm,
   getMotionEvents,
+  getGpsLocation,
   Device,
   DeviceState,
   MotionEvent,
@@ -138,15 +140,41 @@ export default function WatchScreen() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [confirmedNotMe, setConfirmedNotMe] = useState(false);
   const [showLogModal, setShowLogModal] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [gpsLocation, setGpsLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   
   // Red pulse animation for theft detected
   const alertPulseAnim = useRef(new Animated.Value(1)).current;
+  // Fast pulse animation for map marker
+  const markerPulseAnim = useRef(new Animated.Value(1)).current;
   const alertRipple1 = useRef(new Animated.Value(0)).current;
   const alertRipple2 = useRef(new Animated.Value(0)).current;
   const alertRipple3 = useRef(new Animated.Value(0)).current;
   const alertRipple4 = useRef(new Animated.Value(0)).current;
   const alertRipple5 = useRef(new Animated.Value(0)).current;
   
+  // Fast pulse animation for map marker (when map modal is open)
+  useEffect(() => {
+    if (showMapModal) {
+      const fastPulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(markerPulseAnim, {
+            toValue: 0.3,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(markerPulseAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      fastPulse.start();
+      return () => fastPulse.stop();
+    }
+  }, [showMapModal]);
+
   // Theft detected animation - scale pulse and ripple effects
   useEffect(() => {
     if (device?.state === 'THEFT_DETECTED') {
@@ -304,6 +332,24 @@ export default function WatchScreen() {
       setDevice(result.data.device);
     }
     setIsUpdating(false);
+  };
+
+  // Track bike - fetch GPS location and show map modal
+  const handleTrackBike = async () => {
+    setIsUpdating(true);
+    const result = await getGpsLocation();
+    setIsUpdating(false);
+    
+    if (result.error) {
+      Alert.alert('Error', result.error || 'GPS location not available');
+      return;
+    }
+    
+    if (result.data) {
+      const { latitude, longitude } = result.data;
+      setGpsLocation({ latitude, longitude });
+      setShowMapModal(true);
+    }
   };
 
   // Get color for status indicator based on device state
@@ -526,10 +572,10 @@ export default function WatchScreen() {
                     color={device.alarmActive ? '#fff' : '#9CA3AF'} 
                   />
                 </TouchableOpacity>
-                {/* Track bike button (GPS feature - placeholder) */}
+                {/* Track bike button - opens Google Maps with GPS location */}
                 <TouchableOpacity
                   style={styles.trackBikeButton}
-                  onPress={() => {}}
+                  onPress={handleTrackBike}
                   disabled={isUpdating}
                 >
                   <Text style={styles.trackBikeText}>Track bike</Text>
@@ -568,6 +614,148 @@ export default function WatchScreen() {
               <Text style={[styles.noEventsText, themedStyles.textSecondary]}>No detection events yet</Text>
             )}
           </ScrollView>
+        </View>
+      </Modal>
+
+      {/* GPS Map modal */}
+      <Modal
+        visible={showMapModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowMapModal(false)}
+      >
+        <View style={[styles.modalContainer, themedStyles.container]}>
+          <View style={[styles.modalHeader, themedStyles.card]}>
+            <Text style={[styles.modalTitle, themedStyles.text]}>Bike Location</Text>
+            <TouchableOpacity onPress={() => setShowMapModal(false)}>
+              <Ionicons name="close" size={28} color={colors.icon} />
+            </TouchableOpacity>
+          </View>
+          {gpsLocation && (
+            <MapView
+              provider="google"
+              style={styles.map}
+              initialRegion={{
+                latitude: gpsLocation.latitude,
+                longitude: gpsLocation.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+              mapType="standard"
+              customMapStyle={isDark ? [
+                {
+                  elementType: "geometry",
+                  stylers: [{ color: "#242f3e" }]
+                },
+                {
+                  elementType: "labels.text.stroke",
+                  stylers: [{ color: "#242f3e" }]
+                },
+                {
+                  elementType: "labels.text.fill",
+                  stylers: [{ color: "#746855" }]
+                },
+                {
+                  featureType: "administrative.locality",
+                  elementType: "labels.text.fill",
+                  stylers: [{ color: "#d59563" }]
+                },
+                {
+                  featureType: "poi",
+                  elementType: "labels.text.fill",
+                  stylers: [{ color: "#d59563" }]
+                },
+                {
+                  featureType: "poi.park",
+                  elementType: "geometry",
+                  stylers: [{ color: "#263c3f" }]
+                },
+                {
+                  featureType: "poi.park",
+                  elementType: "labels.text.fill",
+                  stylers: [{ color: "#6b9a76" }]
+                },
+                {
+                  featureType: "road",
+                  elementType: "geometry",
+                  stylers: [{ color: "#38414e" }]
+                },
+                {
+                  featureType: "road",
+                  elementType: "geometry.stroke",
+                  stylers: [{ color: "#212a37" }]
+                },
+                {
+                  featureType: "road",
+                  elementType: "labels.text.fill",
+                  stylers: [{ color: "#9ca5b3" }]
+                },
+                {
+                  featureType: "road.highway",
+                  elementType: "geometry",
+                  stylers: [{ color: "#746855" }]
+                },
+                {
+                  featureType: "road.highway",
+                  elementType: "geometry.stroke",
+                  stylers: [{ color: "#1f2835" }]
+                },
+                {
+                  featureType: "road.highway",
+                  elementType: "labels.text.fill",
+                  stylers: [{ color: "#f3d19c" }]
+                },
+                {
+                  featureType: "transit",
+                  elementType: "geometry",
+                  stylers: [{ color: "#2f3948" }]
+                },
+                {
+                  featureType: "transit.station",
+                  elementType: "labels.text.fill",
+                  stylers: [{ color: "#d59563" }]
+                },
+                {
+                  featureType: "water",
+                  elementType: "geometry",
+                  stylers: [{ color: "#17263c" }]
+                },
+                {
+                  featureType: "water",
+                  elementType: "labels.text.fill",
+                  stylers: [{ color: "#515c6d" }]
+                },
+                {
+                  featureType: "water",
+                  elementType: "labels.text.stroke",
+                  stylers: [{ color: "#17263c" }]
+                }
+              ] : undefined}
+            >
+              <Marker
+                coordinate={{
+                  latitude: gpsLocation.latitude,
+                  longitude: gpsLocation.longitude,
+                }}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <View style={styles.markerContainer}>
+                  <Animated.View 
+                    style={[
+                      styles.markerPulse,
+                      { 
+                        backgroundColor: '#EF4444',
+                        opacity: markerPulseAnim 
+                      }
+                    ]} 
+                  />
+                  <View style={styles.markerBike}>
+                    <Ionicons name="bicycle" size={18} color="#fff" />
+                  </View>
+                </View>
+              </Marker>
+            </MapView>
+          )}
         </View>
       </Modal>
     </ScrollView>
@@ -937,6 +1125,30 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     marginTop: 40,
+  },
+  map: {
+    flex: 1,
+  },
+  markerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+  },
+  markerPulse: {
+    position: 'absolute',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EF4444',
+  },
+  markerBike: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

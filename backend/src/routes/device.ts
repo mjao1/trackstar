@@ -118,6 +118,9 @@ deviceRouter.get('/status', async (req: AuthRequest, res: Response): Promise<voi
         state: device.state,
         alarmActive: device.alarmActive,
         lastMotionAt: device.lastMotionAt,
+        lastLatitude: device.lastLatitude,
+        lastLongitude: device.lastLongitude,
+        lastGpsUpdate: device.lastGpsUpdate,
       },
     });
   } catch (error) {
@@ -236,3 +239,30 @@ deviceRouter.get('/events', async (req: AuthRequest, res: Response): Promise<voi
   }
 });
 
+// GET /api/device/gps - Get latest GPS location
+deviceRouter.get('/gps', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const device = await prisma.device.findUnique({
+      where: { userId: req.userId },
+    });
+
+    if (!device) {
+      res.status(404).json({ error: 'No device paired' });
+      return;
+    }
+
+    if (!device.lastLatitude || !device.lastLongitude) {
+      res.status(404).json({ error: 'No GPS location available' });
+      return;
+    }
+
+    res.json({
+      latitude: device.lastLatitude,
+      longitude: device.lastLongitude,
+      lastGpsUpdate: device.lastGpsUpdate,
+    });
+  } catch (error) {
+    console.error('Get GPS error:', error);
+    res.status(500).json({ error: 'Failed to get GPS location' });
+  }
+});

@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <Wire.h>
+#include <TinyGPS++.h>
 
 // === CONFIGURATION ===
 
@@ -21,6 +22,7 @@
 
 #define API_POLL_ENDPOINT "/api/esp32/poll"
 #define API_MOTION_ENDPOINT "/api/esp32/motion"
+#define API_GPS_ENDPOINT "/api/esp32/gps"
 
 // Device credentials
 #define DEVICE_ID "ESP32-DEVICE-001"
@@ -39,10 +41,12 @@
 #define PIN_MPU_SDA 15
 #define PIN_MPU_SCL 2
 #define PIN_WIFI_LED 27
+#define PIN_GPS_RX 16
+#define PIN_GPS_TX 17
 
 // Buzzer polarity
 #define BUZZER_ACTIVE_LOW true
-#define BUZZER_BEEP_INTERVAL 50
+#define BUZZER_BEEP_INTERVAL 100
 
 // MPU-6050 registers
 #define MPU6050_ADDR 0x68
@@ -79,6 +83,12 @@ bool buzzerState = false;
 bool wifiConnected = false;
 WiFiClient client;
 
+// GPS
+TinyGPSPlus gps;
+HardwareSerial gpsSerial(2);
+unsigned long lastGpsUpdate = 0;
+#define GPS_UPDATE_INTERVAL 5000
+
 // === SETUP ===
 
 void setup() {
@@ -106,6 +116,10 @@ void setup() {
   }
   
   Serial.println("MPU-6050 initialized");
+  
+  // Initialize GPS
+  gpsSerial.begin(9600, SERIAL_8N1, PIN_GPS_RX, PIN_GPS_TX);
+  Serial.println("GPS initialized");
   
   // Connect to WiFi
   connectWiFi();
@@ -149,6 +163,12 @@ void loop() {
     case THEFT_DETECTED:
       if (motionDetected) {
         sendMotionEvent();
+      }
+      // Read GPS and send location updates
+      readGPS();
+      if (millis() - lastGpsUpdate >= GPS_UPDATE_INTERVAL) {
+        sendGpsLocation();
+        lastGpsUpdate = millis();
       }
       break;
   }
@@ -473,6 +493,91 @@ void sendMotionEvent() {
   client.stop();
 }
 
+// === GPS ===
+
+void readGPS() {
+  while (gpsSerial.available() > 0) {
+    gps.encode(gpsSerial.read());
+  }
+}
+
+void sendGpsLocation() {
+  if (!wifiConnected || !gps.location.isValid()) {
+    return;
+  }
+  
+  // Extract host and port from API_BASE_URL
+  String host = String(API_BASE_URL);
+  host.replace("http://", "");
+  int port = 3000;
+  int portIndex = host.indexOf(':');
+  if (portIndex != -1) {
+    port = host.substring(portIndex + 1).toInt();
+    host = host.substring(0, portIndex);
+  } else {
+    port = 80;
+  }
+  
+  if (!client.connect(host.c_str(), port)) {
+    Serial.println("GPS: Connection failed");
+    return;
+  }
+  
+  // Build JSON body with GPS coordinates
+  String body = "{";
+  body += "\"latitude\":" + String(gps.location.lat(), 6) + ",";
+  body += "\"longitude\":" + String(gps.location.lng(), 6);
+  if (gps.satellites.value() > 0) {
+    body += ",\"satellites\":" + String(gps.satellites.value());
+  }
+  if (gps.speed.isValid()) {
+    body += ",\"speed\":" + String(gps.speed.mph(), 2);
+  }
+  body += "}";
+  
+  // Send HTTP POST request
+  String endpoint = String(API_GPS_ENDPOINT);
+  client.print("POST ");
+  client.print(endpoint);
+  client.println(" HTTP/1.1");
+  client.print("Host: ");
+  client.println(host);
+  client.print("x-device-id: ");
+  client.println(DEVICE_ID);
+  client.print("x-device-secret: ");
+  client.println(DEVICE_SECRET);
+  client.println("Content-Type: application/json");
+  client.print("Content-Length: ");
+  client.println(body.length());
+  client.println("Connection: close");
+  client.println();
+  client.print(body);
+  
+  // Wait for response
+  unsigned long timeout = millis();
+  while (client.available() == 0) {
+    if (millis() - timeout > 1000) {
+      Serial.println("GPS: Client timeout");
+      client.stop();
+      return;
+    }
+  }
+  
+  // Read response
+  String response = "";
+  while (client.available()) {
+    String line = client.readStringUntil('\r');
+    response += line;
+  }
+  
+  if (response.indexOf("200 OK") != -1) {
+    Serial.println("GPS location sent successfully");
+  } else {
+    Serial.println("GPS location failed. Response: " + response.substring(0, 100));
+  }
+  
+  client.stop();
+}
 
 unsigned long getPollInterval() {
   switch (currentState) {

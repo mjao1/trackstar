@@ -192,8 +192,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </View>
-
-      <Text style={[styles.version, { color: colors.iconMuted }]}>Trackstar v1.0.0</Text>
     </ScrollView>
   );
 }
@@ -280,6 +278,8 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 16,
     paddingVertical: 12,
+    paddingTop: 20,
+    paddingBottom: 5,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
   },

@@ -113,3 +113,39 @@ esp32Router.get('/poll', async (req: DeviceAuthRequest, res: Response): Promise<
   }
 });
 
+// POST /api/esp32/gps - Receive GPS coordinates from device
+esp32Router.post('/gps', async (req: DeviceAuthRequest, res: Response): Promise<void> => {
+  try {
+    const deviceId = req.deviceId!;
+    const { latitude, longitude } = req.body;
+
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+      res.status(400).json({ error: 'Invalid GPS coordinates' });
+      return;
+    }
+
+    const device = await prisma.device.findUnique({
+      where: { id: deviceId },
+    });
+
+    if (!device) {
+      res.status(404).json({ error: 'Device not found' });
+      return;
+    }
+
+    // Update device with GPS coordinates
+    await prisma.device.update({
+      where: { id: deviceId },
+      data: {
+        lastLatitude: latitude,
+        lastLongitude: longitude,
+        lastGpsUpdate: new Date(),
+      },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('GPS update error:', error);
+    res.status(500).json({ error: 'Failed to update GPS coordinates' });
+  }
+});

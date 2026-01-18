@@ -8,7 +8,7 @@ A discrete bike theft detection and prevention device that sends real-time alert
 
 ## Overview
 
-Trackstar is a bike theft prevention system consisting of a hardware device and mobile app:
+Trackstar consists of a hardware device and mobile app:
 
 - **Hardware Device**: A small, discrete device that attaches to your bike and monitors for unauthorized movement
 - **Mobile App**: Receive instant alerts when motion is detected, view your bike's location on a map, and remotely trigger an alarm

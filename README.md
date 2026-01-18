@@ -1,6 +1,6 @@
 # Trackstar
 
-A discrete bike theft detection device that sends real-time alerts to your phone with GPS tracking capabilities.
+A discrete bike theft detection and prevention device that sends real-time alerts to your phone with GPS tracking capabilities.
 
 ## Problem Statement
 

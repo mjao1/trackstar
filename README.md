@@ -1,7 +1,8 @@
 # Trackstar
 
 A discrete bike theft detection and prevention device that sends real-time alerts to your phone with GPS tracking capabilities.
-<img width="49%" alt="IMG_0324" src="https://github.com/user-attachments/assets/287eb2f3-24eb-4d36-9ae6-3f37b7b9dfb2" /> <img width="49%" alt="IMG_0331" src="https://github.com/user-attachments/assets/d0dd9d77-b892-4cee-ac7a-4a079829dd20" />
+
+<img width="45%" alt="IMG_0324" src="https://github.com/user-attachments/assets/287eb2f3-24eb-4d36-9ae6-3f37b7b9dfb2" /> <img width="45%" alt="IMG_0331" src="https://github.com/user-attachments/assets/d0dd9d77-b892-4cee-ac7a-4a079829dd20" />
 <p align = "center"> <img width="60%" alt="IMG_4145" src="https://github.com/user-attachments/assets/d4bae123-b9a7-4d2e-84b9-8bb223c9c9fa" />
 
 
